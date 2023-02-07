@@ -72,7 +72,7 @@ contract NFTMarketplace is ERC721URIStorage
         return listingPrice;
     }
 
-    // Mints a token that can be listed on the marketplace
+    // Mints an NFT that can be used for a market item
     function createToken(string memory tokenURI, uint256 price)
     public payable
     returns (uint)
@@ -80,7 +80,7 @@ contract NFTMarketplace is ERC721URIStorage
         _tokenIds.increment();
 
         // Variable that gets the current value of the tokenIds (0, 1, 2, etc.)
-        uint256 newTokenId= _tokenIds.current();
+        uint256 newTokenId = _tokenIds.current();
 
         // Mint the token
         _mint(msg.sender, newTokenId);
@@ -89,5 +89,65 @@ contract NFTMarketplace is ERC721URIStorage
 
         // Return the newTokenId
         return newTokenId;
+    }
+
+    // Creates the market item with the minted token so it can be listed on the marketplace
+    function createMarketItem(uint256 tokenId, uint256 price)
+    private
+    {
+        // Require a certain condition, in this case price greater than 0
+        require(price > 0, "Price must be at least 1");
+        // Require the user sending the transaction is sending the correct amount
+        require(msg.value == listingPrice, "Price must be equal to listing price");
+
+        // Create the mapping for the market item
+        // Currently no seller so it's behind the marketplace payable(msg.sender)
+        // payable(address(this)) is the owner
+        // Price that is going to be listed
+        // Has not been sold yet so it is false
+        idToMarketItem[tokenId] = MarketItem(tokenId, payable(msg.sender), payable(address(this)), price, false);
+        // IERC721 Transfer method giving the ownership of the NFT to the creator
+        _transfer(msg.sender, address(this), tokenId);
+
+        // Stores the market item in transaction logs
+        emit MarketItemCreated(tokenId, msg.sender, address(this), price, false);
+    }
+
+    // Allows the user to resell an NFT they have purchased
+    function resellToken(uint256 tokenId, uint256 price)
+    public payable
+    {
+        require(idToMarketItem[tokenId].owner == msg.sender, "Only NFT owner can perform this operation");
+        require(msg.value == listingPrice, "Price must be equal to listing price");
+        
+        idToMarketItem[tokenId].sold = false;
+        idToMarketItem[tokenId].price = price;
+        idToMarketItem[tokenId].seller = payable(msg.sender);
+        idToMarketItem[tokenId].owner = payable(address(this));
+
+        _itemsSold.decrement();
+
+        _transfer(msg.sender, address(this), tokenId);
+    }
+
+    // Creates the sale of an NFT on  the marketplace
+    function createMarketSale(uint256 tokenId)
+    public payable
+    {
+        uint price = idToMarketItem[tokenId].price;
+
+        require(msg.value == price, "Please submit the listed price in order to complete the purchase");
+
+        idToMarketItem[tokenId].sold = true;
+        idToMarketItem[tokenId].seller = payable(address(0));
+        idToMarketItem[tokenId].owner = payable(msg.sender);
+
+        _itemsSold.increment();
+
+        // IERC721 Transfer method giving the ownership of the NFT from the seller to the buyer
+        _transfer(address(this), msg.sender, tokenId);
+
+        payable(owner).transfer(listingPrice);
+        payable(idToMarketItem[tokenId].seller).transfer(msg.value);
     }
 }
