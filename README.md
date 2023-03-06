@@ -1,6 +1,19 @@
-# Basic Sample Hardhat Project
+# Byte Market
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+Next.js framework
+Tailwind CSS design
+Solidity smart contract
+InterPlanetary File System for storage and peer-to-peer sharing
+Polygon blockchain
+
+```shell
+Developed by Sean-Justin Lattimore II
+inquiries: seanlattimoreii@gmail.com
+```
+
+# Hardhat Project
+
+This project demonstrates a basic Hardhat use case.
 
 Try running some of the following tasks:
 

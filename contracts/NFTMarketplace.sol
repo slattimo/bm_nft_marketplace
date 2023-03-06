@@ -51,6 +51,7 @@ contract NFTMarketplace is ERC721URIStorage
 
     // Set the owner as the one deploying the contract
     constructor()
+    ERC721("Byte Tokens", "BYTE")
     {
         owner = payable(msg.sender);
     }
@@ -149,5 +150,116 @@ contract NFTMarketplace is ERC721URIStorage
 
         payable(owner).transfer(listingPrice);
         payable(idToMarketItem[tokenId].seller).transfer(msg.value);
+    }
+
+    // Returns all current unsold market items
+    function fetchMarketItems()
+    public view
+    returns (MarketItem[] memory)
+    {
+        uint itemCount = _tokenIds.current();
+        uint unsoldItemCount = _tokenIds.current() - _itemsSold.current();
+        uint currentIndex = 0;
+
+        // Empty array of datatype MarketItem with unsoldItemCount as the length
+        MarketItem[] memory items = new MarketItem[](unsoldItemCount);
+
+        // Looping over the number of unsold market items created and increment if the owner is the market (address(this))
+        for(uint i = 0; i < itemCount; i++)
+        {
+            // Check to see if the item is owned by the market
+            if(idToMarketItem[i + 1].owner == address(this))
+            {
+                // The id of the current item being interacted with
+                uint currentId = i + 1;
+
+                // Get the mapping of the currentId to reference the market item
+                MarketItem storage currentItem = idToMarketItem[currentId];
+
+                // Add the market item to the array
+                items[currentIndex] = currentItem;
+                // Increment index
+                currentIndex += 1;
+            }
+        }
+
+        return items;
+    }
+
+    // Returns all of NFTs the user has purchased
+    function fetchMyNFTs()
+    public view
+    returns (MarketItem[] memory)
+    {
+        uint totalItemCount = _tokenIds.current();
+        uint itemCount = 0;
+        uint currentIndex = 0;
+        
+        // Looping over items that are owned by the user
+        for(uint i = 0; i < totalItemCount; i++)
+        {
+            // Check if item is owned by the user
+            if(idToMarketItem[i + 1].owner == msg.sender)
+            {
+                itemCount += 1;
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+
+        for(uint i = 0; i < totalItemCount; i++)
+        {
+            // Check if item is owned by the user
+            if(idToMarketItem[i + 1].owner == msg.sender)
+            {
+                // The id of the current item being interacted with
+                uint currentId = i + 1;
+
+                // Get the mapping of the currentId to reference the market item
+                MarketItem storage currentItem = idToMarketItem[currentId];
+
+                // Add the market item to the array
+                items[currentIndex] = currentItem;
+                // Increment index
+                currentIndex += 1;
+            }
+        }
+
+        return items;
+    }
+
+    // Returns the market items listed by the user
+    function fetchItemsListed()
+    public view
+    returns (MarketItem[] memory)
+    {
+        uint totalItemCount = _tokenIds.current();
+        uint itemCount = 0;
+        uint currentIndex = 0;
+
+        for(uint i = 0; i < totalItemCount; i++)
+        {
+            if(idToMarketItem[i + 1].seller == msg.sender)
+            {
+                itemCount += 1;
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+
+        for(uint i = 0; i < totalItemCount; i++)
+        {
+            if(idToMarketItem[i + 1].seller == msg.sender)
+            {
+                uint currentId = i + 1;
+
+                MarketItem storage currentItem = idToMarketItem[currentId];
+
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+
+        return items;
     }
 }
