@@ -7,10 +7,10 @@
 - InterPlanetary File System for storage and peer-to-peer sharing
 - Polygon blockchain
 
-```shell
+
 *Developed by Sean-Justin Lattimore II*
 *inquiries: seanlattimoreii@gmail.com*
-```
+---
 
 ## Hardhat Project
 
